@@ -31,7 +31,12 @@ abundance_table <- read.table("data/AA_frequencies.csv")
 ui <- page_sidebar(
       theme = bs_theme(preset = "vapor"),
       title = "aBunDances",
-      sidebar = sidebar("check this out!", position = "right"),
+      sidebar = sidebar(
+            "Data Import / Export",
+            position = "right",
+            fileInput("file", label = "Upload fasta file", accept = ".fasta"),
+            actionButton("calculate", label = "Calculate!", icon = icon("jedi"))
+            ),
       "Calculate relative amino acid composition",
       card(
             card_header("Getting started"),
@@ -41,40 +46,24 @@ ui <- page_sidebar(
       ),
    
       value_box(
-            title = "boxV",
-            value = 100,
-            showcase = bsicons::bs_icon("bar-chart"),
-            theme = "teal"
-      ),
-      card(
-            card_header("Upload fasta file"),
-            fileInput("file", label = NULL, accept = ".fasta")
-      ),
-      
-      card(
-            actionButton("calculate", label = "Calculate!",
-                         icon = icon("jedi"))
-      ),
-      
-      card(
-            
-            tableOutput("head")
-           
-      ),
-      
-      card(
-            tableOutput("results")
+            title = "showing results for",
+            value = textOutput("name"),
+            showcase = bsicons::bs_icon("bar-chart")
       ),
       
       card(
             plotOutput("plot")
+      ),
+      
+      card(
+            tableOutput("results")
       )
       
 )
 
 server <- function(input, output) {
       
-      # Reactive expression to handle file input and reading
+      # Reactive file input
       dataInput <- reactive({
             req(input$file)
             
@@ -87,7 +76,7 @@ server <- function(input, output) {
             if (!is.null(filepath) && file.exists(filepath)) {
                   print("File exists and is accessible.")
                   
-                  # Read the FASTA file
+                  # Read the fasta file
                   fasta_data <- reader(filepath)
                   return(fasta_data)
             } else {
@@ -96,33 +85,22 @@ server <- function(input, output) {
             }
       })
       
-      output$head <- renderTable({
-            data <- dataInput()
-            tool <- as.data.frame(data[1])
-            head(tool)
-            
+      abun <- eventReactive(input$calculate, {
+            req(dataInput())
+            aBunDances(dataInput())
       })
-      
-      # Output the results after processing the data
-      output$results <- renderTable({
-            data <- dataInput()  # Get the data from the reactive expression
 
-            if (!is.null(data)) {
-                  aBunDances(data)  # Process and display the data if valid
-            } else {
-                  data.frame(Message = "No valid FASTA data available")  # Show a message if no data
-            }
+      output$results <- renderTable({
+            abun()
       })
       
       output$plot <- renderPlot({
+            req(abun())
             
-            input <- aBunDances(dataInput())
-            
-            pl <- ggplot(input, aes(x = AA, y = mean_rel_freq))
+            pl <- ggplot(abun(), aes(x = AA, y = mean_rel_freq))
             pl1 <- pl + geom_col(aes(), position = "dodge", color = "black",
-                                 width = 0.7, fill = "darkred") + ylim(0,1.6)
-            pl2 <- pl1 + theme_clean() + ggtitle("Amino acid composition",
-                                                 subtitle = "negative interaction effects - mean values") + 
+                                 width = 0.7, fill = "lightgreen") + ylim(0,1.6)
+            pl2 <- pl1 + theme_clean() + ggtitle("Amino acid composition") + 
                   ylab("Relative Frequency") + theme(
                         axis.title.x = element_text(size = 12, face = "bold"),
                         axis.title.y = element_text(size = 12, face = "bold"),
@@ -133,7 +111,12 @@ server <- function(input, output) {
             pl3 <- pl2 + geom_hline(yintercept = 1, linetype = "dashed", size = 1.2)
             pl3 + geom_text(aes(label = round(mean_rel_freq,2)), vjust = -0.2)
       })
+      
+      output$name <- 
+            renderPrint({
+                  input$file$name
+            })
 }
 
-# Run the app with the specified UI and server
+# Run the app
 shinyApp(ui = ui, server = server)

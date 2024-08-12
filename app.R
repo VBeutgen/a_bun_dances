@@ -31,21 +31,23 @@ abundance_table <- read.table("data/AA_frequencies.csv")
 # define user interface
 
 ui <- page_sidebar(
-      theme = bs_theme(preset = "vapor"),
+      theme = bs_theme(preset = "quartz"),
       title = "aBunDances",
+      width = 500,
       sidebar = sidebar(
             "Data Import / Export",
-            fileInput("file", label = "Upload fasta file", accept = ".fasta"),
+            fileInput("file", label = "Upload fasta file", accept = ".fasta", width = 100),
             actionButton("calculate", label = "Calculate!", icon = icon("jedi"))
             ),
-
-      "Calculate relative amino acid composition",
       
       fluidPage(
+            tags$h1("calculate relative amino acid composition"),
+            
       card(
-            card_header("Getting started"),
-            "To get started, download the fasta files of your POIs at:
-            https://www.uniprot.org/id-mapping",
+            card_header(tags$h2("Getting started")),
+            "To get started, download the FASTA file of your POIs at:",
+            tags$a("https://www.uniprot.org/id-mapping",
+            href = "https://www.uniprot.org/id-mapping"),
             card_image("data/bun.jpeg", width = "500px", height = "300px")
       ),
    
@@ -55,19 +57,24 @@ ui <- page_sidebar(
             showcase = bsicons::bs_icon("bar-chart")
       ),
       
-      card(
+      navset_card_underline(
+            
+      nav_panel("Plot",
+            
             plotOutput("plot")
       ),
       
-      card(
+      nav_panel("Table",
             tableOutput("results")
       ),
+      
+      nav_panel("About", "This is what it's all about")),
+
       
       card(
             downloadButton("loadResults", "Download")
       )
       )
-      
 )
 
 server <- function(input, output) {

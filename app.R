@@ -31,51 +31,70 @@ abundance_table <- read.table("data/AA_frequencies.csv")
 # define user interface
 
 ui <- page_sidebar(
-      theme = bs_theme(preset = "quartz"),
-      title = "aBunDances",
-      width = 500,
-      sidebar = sidebar(
-            "Data Import / Export",
-            fileInput("file", label = "Upload fasta file", accept = ".fasta", width = 100),
-            actionButton("calculate", label = "Calculate!", icon = icon("jedi"))
-            ),
+            theme = bs_theme(preset = "vapor"),
+            title = "aBunDances",
+            width = 3000,
+            sidebar = sidebar("Data Import / Export",
+                  
+                  fileInput("file", label = "Upload fasta file",
+                            accept = ".fasta"),
+                  
+                  actionButton("calculate", label = "Calculate!",
+                               icon = icon("jedi"))
+                  ),
       
       fluidPage(
-            tags$h1("calculate relative amino acid composition"),
+            tags$h1("Calculate Relative Amino Acid Composition"),
             
-      card(
-            card_header(tags$h2("Getting started")),
-            "To get started, download the FASTA file of your POIs at:",
-            tags$a("https://www.uniprot.org/id-mapping",
-            href = "https://www.uniprot.org/id-mapping"),
-            card_image("data/bun.jpeg", width = "500px", height = "300px")
-      ),
-   
-      value_box(
-            title = "showing results for",
-            value = textOutput("name"),
-            showcase = bsicons::bs_icon("bar-chart")
-      ),
-      
-      navset_card_underline(
+            card(
+                  card_header(tags$h2("Getting started")),
+                  "To get started, download the FASTA file of your POIs at:",
+                  tags$a("https://www.uniprot.org/id-mapping",
+                  href = "https://www.uniprot.org/id-mapping"),
+                  card_image("data/bun.jpeg", width = "500px", height = "300px")
+            ),
+         
+            value_box(
+                  title = "showing results for",
+                  value = textOutput("name"),
+                  showcase = bsicons::bs_icon("bar-chart")
+            ),
             
-      nav_panel("Plot",
+            navset_card_underline(
+                  
+                  nav_panel("Plot",
+                              plotOutput("plot")
+            ),
             
-            plotOutput("plot")
-      ),
+                  nav_panel("Table",
+                             tableOutput("results")
+            ),
+            
+                  nav_panel("About",
+                            
+                            card(
+                            " Human proteome reference data was downloaded in
+                            FASTA format from UniProt (12.10.2022).
+                            Swissprot-reviewed entries and canonical sequences
+                            (no isoforms) were considered exclusively,
+                            resulting in 20,398 protein sequences.
+                            The retrieved sequence data was used to calculate
+                            reference values for expected amino acid frequencies
+                            normalized to 1 and are compared to the observed
+                            frequencies of the uploaded protein list in the app.",
+                            card_footer("Author:",
+                                        tags$a("V.M. Beutgen",
+                                               href = "https://orcid.org/0000-0002-3354-2020")))
+                            
+                            )),
       
-      nav_panel("Table",
-            tableOutput("results")
-      ),
-      
-      nav_panel("About", "This is what it's all about")),
-
-      
-      card(
-            downloadButton("loadResults", "Download")
-      )
+            
+            card(
+                  downloadButton("loadResults", "Download")
+            )
       )
 )
+
 
 server <- function(input, output) {
       
@@ -130,6 +149,10 @@ server <- function(input, output) {
       
       output$name <- 
             renderPrint({
+                  if (is.null(input$file)) {
+                        return("No file selected")
+                  }
+                  
                   input$file$name
             })
       
@@ -176,7 +199,7 @@ server <- function(input, output) {
       )
       
 }
-
+      
 
 
 # Run the app

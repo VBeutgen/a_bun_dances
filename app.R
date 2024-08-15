@@ -7,10 +7,6 @@
 
 # Setup
 
-# Source scripts, load libraries, and read data sets at the beginning of app.R
-# outside of the server function. Shiny will only run this code once, which is
-# all you need to set your server up to run the R expressions contained in server.
-
 library(shiny)
 library(bslib)
 library(seqinr)
@@ -54,12 +50,12 @@ ui <- page_sidebar(
                   card_image("data/bun.jpeg", width = "500px", height = "300px")
             ),
          
-            value_box(
-                  title = "showing results for",
-                  value = textOutput("name"),
-                  showcase = bsicons::bs_icon("bar-chart")
-            ),
-            
+            # value_box(
+            #       title = "showing results for",
+            #       value = textOutput("name"),
+            #       showcase = bsicons::bs_icon("bar-chart")
+            # ),
+            # 
             navset_card_underline(
                   
                   nav_panel("Plot",
@@ -98,10 +94,8 @@ ui <- page_sidebar(
 
 server <- function(input, output) {
       
-      # Reactive file input
       dataInput <- reactive({
             req(input$file)
-            
             
             # Normalize the file path
             filepath <- normalizePath(input$file$datapath, winslash = "/")
@@ -111,7 +105,6 @@ server <- function(input, output) {
             if (!is.null(filepath) && file.exists(filepath)) {
                   print("File exists and is accessible.")
                   
-                  # Read the fasta file
                   fasta_data <- reader(filepath)
                   return(fasta_data)
             } else {

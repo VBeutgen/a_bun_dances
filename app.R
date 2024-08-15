@@ -49,13 +49,7 @@ ui <- page_sidebar(
                   href = "https://www.uniprot.org/id-mapping"),
                   card_image("data/bun.jpeg", width = "500px", height = "300px")
             ),
-         
-            # value_box(
-            #       title = "showing results for",
-            #       value = textOutput("name"),
-            #       showcase = bsicons::bs_icon("bar-chart")
-            # ),
-            # 
+
             navset_card_underline(
                   
                   nav_panel("Plot",
@@ -139,15 +133,6 @@ server <- function(input, output) {
             pl3 <- pl2 + geom_hline(yintercept = 1, linetype = "dashed", size = 1.2)
             pl3 + geom_text(aes(label = round(mean_rel_freq,2)), vjust = -0.2)
       })
-      
-      output$name <- 
-            renderPrint({
-                  if (is.null(input$file)) {
-                        return("No file selected")
-                  }
-                  
-                  input$file$name
-            })
       
       results <- eventReactive(input$calculate, {
             require(abun())

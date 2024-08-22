@@ -17,11 +17,12 @@ library(ggthemes)
 library(RColorBrewer)
 library(data.table)
 library(magrittr)
+library(shinycssloaders)
 
 source("aa_abundances.R")
 source("reader.R")
 
-abundance_table <- read.table("data/AA_frequencies.csv")
+
 
 
 # define user interface
@@ -36,7 +37,7 @@ ui <- page_sidebar(
                             accept = ".fasta"),
                   
                   actionButton("calculate", label = "Calculate!",
-                               icon = icon("jedi"))
+                               icon = icon("martini-glass-citrus"))
                   ),
       
       fluidPage(
@@ -46,14 +47,16 @@ ui <- page_sidebar(
                   card_header(tags$h2("Getting started")),
                   "To get started, download the FASTA file of your POIs at:",
                   tags$a("https://www.uniprot.org/id-mapping",
-                  href = "https://www.uniprot.org/id-mapping"),
-                  card_image("data/bun.jpeg", width = "500px", height = "300px")
+                  href = "https://www.uniprot.org/id-mapping")
             ),
 
             navset_card_underline(
                   
                   nav_panel("Plot",
-                              plotOutput("plot")
+                            withSpinner(
+                              plotOutput("plot"),
+                              type = 6, color = "purple"
+                            )
             ),
             
                   nav_panel("Table",
@@ -74,7 +77,7 @@ ui <- page_sidebar(
                             frequencies of the uploaded protein list in the app.",
                             card_footer("Author:",
                                         tags$a("V.M. Beutgen",
-                                               href = "https://orcid.org/0000-0002-3354-2020")))
+                                               href = "https://github.com/VBeutgen")))
                             
                             )),
       
@@ -87,6 +90,8 @@ ui <- page_sidebar(
 
 
 server <- function(input, output) {
+      
+      abundance_table <- read.table("data/AA_frequencies.csv")
       
       dataInput <- reactive({
             req(input$file)
